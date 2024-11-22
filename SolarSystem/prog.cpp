@@ -1,9 +1,42 @@
 #include <SFML/Graphics.hpp>
 #include <box2d/box2d.h>
+#include <vector>
+
+const float width = 800.0f;
+const float height = 600.0f;
+const float pixelsperunit = 40.0f;
+
+struct Planet
+{
+    b2Body* body;
+    sf::CircleShape shape;
+};
+
+std::vector<Planet*> Planets;
+
+sf::Vector2f box2sfml(b2Vec2 v)
+{
+    return sf::Vector2f(v.x * pixelsperunit + width / 2, height / 2 - v.y * pixelsperunit);
+}
+
+sf::Vector2f box2sfml(float x, float y)
+{
+    return sf::Vector2f(x * pixelsperunit + width / 2, height / 2 - y * pixelsperunit);
+}
+
+b2Vec2 sfml2box(sf::Vector2f v)
+{
+    return b2Vec2((v.x - width / 2) / pixelsperunit, (height / 2 - v.y) / pixelsperunit);
+}
+
+b2Vec2 sfml2box(float x, float y)
+{
+    return b2Vec2((x - width / 2) / pixelsperunit, (height / 2 - y) / pixelsperunit);
+}
 
 int main() {
     // SFML Setup
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Box2D + SFML Test");
+    sf::RenderWindow window(sf::VideoMode(width, height), "Box2D + SFML Test");
     window.setFramerateLimit(60);
 
     // Box2D World Setup
@@ -11,22 +44,22 @@ int main() {
     b2World world(gravity);
 
     // Ground Body (Static)
-    b2BodyDef groundBodyDef;
-    groundBodyDef.position.Set(0.0f, -10.0f); // Position at the bottom
-    b2Body* groundBody = world.CreateBody(&groundBodyDef);
-
-    b2PolygonShape groundBox;
-    groundBox.SetAsBox(50.0f, 10.0f); // Size of the ground
-    groundBody->CreateFixture(&groundBox, 0.0f); // Density = 0.0 for static objects
+    b2BodyDef SunBodyDef;
+    SunBodyDef.position.Set(0.0f, 0.0f); // Position at the bottom
+    b2Body* SunBody = world.CreateBody(&SunBodyDef);
+    
+    b2CircleShape SunShape;
+    SunShape.m_radius = 1;
+    SunBody->CreateFixture(&SunShape, 0.0f); // Density = 0.0 for static objects
 
     // Dynamic Body (Falling Box)
     b2BodyDef dynamicBodyDef;
     dynamicBodyDef.type = b2_dynamicBody;
-    dynamicBodyDef.position.Set(0.0f, 15.0f); // Starting position
+    dynamicBodyDef.position.Set(0.0f, 4.0f); // Starting position
     b2Body* dynamicBody = world.CreateBody(&dynamicBodyDef);
 
-    b2PolygonShape dynamicBox;
-    dynamicBox.SetAsBox(1.0f, 1.0f); // Size of the box
+    b2CircleShape dynamicBox;
+    dynamicBox.m_radius = 0.5;
 
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &dynamicBox;
@@ -35,13 +68,14 @@ int main() {
     dynamicBody->CreateFixture(&fixtureDef);
 
     // SFML Shapes for Rendering
-    sf::RectangleShape groundRect(sf::Vector2f(800.0f, 20.0f)); // Ground is a wide rectangle
-    groundRect.setFillColor(sf::Color::Red);
-    groundRect.setPosition(0.0f, 580.0f); // Bottom of the screen
+    sf::CircleShape Sun(SunShape.m_radius * pixelsperunit);
+    Sun.setFillColor(sf::Color::Yellow);
+    Sun.setOrigin(pixelsperunit, pixelsperunit);
+    Sun.setPosition(box2sfml(SunBodyDef.position)); // Bottom of the screen
 
-    sf::RectangleShape boxRect(sf::Vector2f(40.0f, 40.0f)); // Box is a square
+    sf::CircleShape boxRect(dynamicBox.m_radius * pixelsperunit);
     boxRect.setFillColor(sf::Color::Green);
-    boxRect.setOrigin(20.0f, 20.0f); // Center origin for proper positioning
+    boxRect.setOrigin(dynamicBox.m_radius * pixelsperunit, dynamicBox.m_radius * pixelsperunit); // Center origin for proper positioning
 
     // Main Loop
     while (window.isOpen()) {
@@ -58,12 +92,11 @@ int main() {
         world.Step(timeStep, velocityIterations, positionIterations);
 
         // Update Box Position
-        b2Vec2 position = dynamicBody->GetPosition();
-        boxRect.setPosition(position.x * 40.0f + 400.0f, 600.0f - position.y * 40.0f); // Scale and translate to screen
+        boxRect.setPosition(box2sfml(dynamicBody->GetPosition())); // Scale and translate to screen
 
         // Rendering
         window.clear();
-        window.draw(groundRect);
+        window.draw(Sun);
         window.draw(boxRect);
         window.display();
     }
