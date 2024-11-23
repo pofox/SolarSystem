@@ -144,7 +144,7 @@ int main() {
 
                         b2FixtureDef pfixtureDef;
                         pfixtureDef.shape = &pdynamicBox;
-                        pfixtureDef.density = (Planets[i]->body->GetFixtureList()->GetDensity()+Planets[j]->body->GetFixtureList()->GetDensity())/2; // Mass density
+                        pfixtureDef.density = (Planets[i]->body->GetFixtureList()->GetDensity()*Planets[i]->body->GetMass() + Planets[j]->body->GetFixtureList()->GetDensity() * Planets[j]->body->GetMass()) / (Planets[i]->body->GetMass() + Planets[j]->body->GetMass()); // Mass density
                         pfixtureDef.friction = 0.3f; // Friction
                         p->body->CreateFixture(&pfixtureDef);
 
