@@ -96,9 +96,6 @@ int main() {
                 pfixtureDef.friction = 0.3f; // Friction
                 p->body->CreateFixture(&pfixtureDef);
                 b2Vec2 dir = p->body->GetPosition();
-                /*float force = G * p->body->GetMass() * SUN_MASS / dir.LengthSquared();
-                dir.Normalize();
-                dir *= force;*/
                 dir = b2Vec2(sqrt(G * SUN_MASS / dir.Length()) * -dir.y / dir.Length(), sqrt(G * SUN_MASS / dir.Length()) * dir.x / dir.Length());
                 if (rand() % 2)
                 {
