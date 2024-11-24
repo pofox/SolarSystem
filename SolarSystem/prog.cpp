@@ -148,9 +148,13 @@ int main() {
                         pfixtureDef.friction = 0.3f; // Friction
                         p->body->CreateFixture(&pfixtureDef);
 
-                        b2Vec2 vel = Planets[i]->body->GetLinearVelocity()+Planets[j]->body->GetLinearVelocity();
-                        vel.x /= 2;
-                        vel.y /= 2;
+                        b2Vec2 vel = Planets[i]->body->GetLinearVelocity();
+                        b2Vec2 vel2 = Planets[j]->body->GetLinearVelocity();
+                        vel *= Planets[i]->body->GetMass();
+                        vel2 *= Planets[j]->body->GetMass();
+                        vel += vel2;
+                        vel.x /= Planets[i]->body->GetMass()+Planets[j]->body->GetMass();
+                        vel.y /= Planets[i]->body->GetMass()+Planets[j]->body->GetMass();
                         p->body->SetLinearVelocity(vel);
                         sf::Vector2f center = Planets[i]->shape.getPosition() + Planets[j]->shape.getPosition();
                         center.x /= 2;
